@@ -6,7 +6,7 @@ function Assert-GuardStandaloneNode($Value, [int]$Depth=0) {
     if ($Value -is [array]) { foreach ($v in $Value) { Assert-GuardStandaloneNode $v ($Depth+1) }; return }
     foreach ($p in $Value.PSObject.Properties) {
         # Chained nodes and external files/plugins need a separate audit; never copy them silently.
-        if ($p.Name -match '^(detour|dialer-proxy|proxySettings|dialerProxy|download_detour|plugin|plugin-opts|certificate_path|key_path|certificate-path|private-key-path|client-fingerprint-path|sendThrough|bind_interface|bind-interface|routing-mark|interface-name|fallback.*|url|path_file)$' -and $p.Value) {
+        if ($p.Name -match '^(detour|dialer-proxy|proxySettings|dialerProxy|download_detour|plugin|plugin-opts|certificate_path|key_path|certificate-path|private-key-path|certificateFile|keyFile|client-fingerprint-path|sendThrough|bind_interface|bind-interface|routing-mark|interface-name|fallback.*|url|path_file)$' -and $p.Value) {
             throw 'This node depends on another proxy, external file, interface or plugin. Export a standalone node instead.'
         }
         if ($p.Name -match '^(insecure|allowInsecure|skip-cert-verify)$' -and $p.Value -eq $true) { throw 'Import requires TLS certificate verification. Fix the source node first.' }

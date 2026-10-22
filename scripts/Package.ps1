@@ -11,14 +11,21 @@ $name = "claude-proxy-guard-$Version-windows-x64"
 $stage = Join-Path $dist $name
 if (Test-Path -LiteralPath $stage) { throw 'Package directory already exists. Choose a fresh version or inspect/remove the old package manually.' }
 New-Item -ItemType Directory -Path "$stage\bin" -Force | Out-Null
-# Explicit allowlist: never recursively package the working tree or local profile data.
-foreach ($dir in @('scripts','native','docs','examples')) {
+# Only tracked files within the allowlist: untracked/ignored credentials in a
+# documentation or script directory must never slip into a distribution.
+$allowedDirs=@('scripts','native','docs','examples')
+foreach ($dir in $allowedDirs) {
     $sourceDir = Join-Path $root $dir
     if (@(Get-ChildItem -LiteralPath $sourceDir -Recurse -Force | Where-Object { $_.Attributes -band [IO.FileAttributes]::ReparsePoint }).Count) { throw 'Refusing to package reparse points.' }
-    Copy-Item -LiteralPath $sourceDir -Destination $stage -Recurse
 }
-foreach ($file in @('Setup.cmd','README.md','README.en.md','LICENSE','NOTICE.md','VERSION','SECURITY.md','CHANGELOG.md','CONTRIBUTING.md')) {
-    Copy-Item -LiteralPath (Join-Path $root $file) -Destination $stage
+$allowedFiles=@('Setup.cmd','README.md','README.en.md','LICENSE','NOTICE.md','VERSION','SECURITY.md','CHANGELOG.md','CONTRIBUTING.md','CODE_OF_CONDUCT.md')
+$tracked=@(& git -C $root -c core.quotepath=false ls-files -- @allowedDirs @allowedFiles)
+if ($LASTEXITCODE -ne 0 -or !$tracked.Count) { throw 'Unable to enumerate tracked release sources.' }
+foreach ($file in $tracked) {
+    if ($file -match '(^|/)\.\.(/|$)' -or [IO.Path]::IsPathRooted($file)) { throw 'Invalid tracked path.' }
+    $destination=Join-Path $stage $file
+    New-Item -ItemType Directory -Path (Split-Path $destination) -Force | Out-Null
+    Copy-Item -LiteralPath (Join-Path $root $file) -Destination $destination
 }
 Copy-Item -LiteralPath $helper -Destination "$stage\bin\proxy-guard.exe"
 $parser = Join-Path $root 'bin\YamlDotNet.dll'
