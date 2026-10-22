@@ -26,3 +26,5 @@ try {
     }
 } finally { Remove-Item -LiteralPath $fixture -ErrorAction SilentlyContinue }
 Write-Host 'PASS: PowerShell syntax; native invalid-input rejection; profile validation. No firewall rules changed.'
+# Expected native failures above must not leak into the CI wrapper's exit code.
+exit 0
