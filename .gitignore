@@ -1,0 +1,7 @@
+bin/
+build/
+private/
+*.dpapi
+*.log
+*.zip
+profile.json
