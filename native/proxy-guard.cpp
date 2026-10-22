@@ -168,7 +168,9 @@ bool MatchesFilter(const FWPM_FILTER0& filter, const Policy& policy, size_t inde
     const GUID layer = index == 3 ? FWPM_LAYER_ALE_AUTH_CONNECT_V6 : FWPM_LAYER_ALE_AUTH_CONNECT_V4;
     if (filter.filterKey != policy.keys[index] || filter.subLayerKey != policy.sublayer ||
         filter.layerKey != layer || !SameText(filter.displayData.name, kFilterName) ||
-        filter.flags != kFilterFlags || filter.action.type != FWP_ACTION_BLOCK ||
+        // BFE may add INDEXED to an installed filter. No other extra flags (in
+        // particular DISABLED) are acceptable for an enforced client policy.
+        (filter.flags & ~FWPM_FILTER_FLAG_INDEXED) != kFilterFlags || filter.action.type != FWP_ACTION_BLOCK ||
         filter.weight.type != FWP_UINT8 || filter.weight.uint8 != kFilterWeight ||
         filter.providerKey != nullptr || filter.providerData.size != 0 ||
         filter.numFilterConditions != (index == 3 ? 1u : 2u) || !filter.filterCondition) return false;
