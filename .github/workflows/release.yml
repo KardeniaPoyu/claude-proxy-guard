@@ -1,0 +1,42 @@
+name: Publish preview
+on:
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: preview-release
+  cancel-in-progress: false
+jobs:
+  release:
+    if: github.ref == 'refs/heads/main'
+    runs-on: windows-2022
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - uses: ilammy/msvc-dev-cmd@0b201ec74fa43914dc39ae48a89fd1d8cb592756 # v1
+        with:
+          arch: x64
+      - name: Build and validate release
+        shell: powershell
+        run: |
+          ./scripts/Build.ps1
+          ./scripts/Restore-Dependencies.ps1
+          ./tests/Test-Static.ps1
+          ./tests/Test-Profile.ps1
+          ./tests/Test-ProxyImport.ps1
+          ./tests/Test-WfpIntegration.ps1 -AcknowledgeIsolatedTestHost
+          ./scripts/Package.ps1 -Version (Get-Content VERSION -Raw).Trim()
+      - name: Publish immutable preview assets
+        shell: powershell
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_COMMIT: ${{ github.sha }}
+        run: |
+          $version=(Get-Content VERSION -Raw).Trim()
+          if ($version -notmatch '^\d+\.\d+\.\d+-preview\.\d+$') { throw 'Only explicitly versioned previews are supported.' }
+          $assets=@(Get-ChildItem dist -File | Where-Object { $_.Extension -in @('.zip','.sha256') } | ForEach-Object { $_.FullName })
+          if ($assets.Count -ne 2) { throw 'Expected exactly one ZIP and its checksum.' }
+          gh release create "v$version" @assets --target $env:RELEASE_COMMIT --prerelease --title "Claude Proxy Guard $version" --notes-file docs/release-notes.md
+          if ($LASTEXITCODE -ne 0) { throw 'Release creation failed; existing releases are never overwritten.' }

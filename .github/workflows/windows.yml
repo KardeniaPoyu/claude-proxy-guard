@@ -23,6 +23,9 @@ jobs:
       - name: Build hardened native helper
         shell: powershell
         run: ./scripts/Build.ps1
+      - name: Restore checksum-pinned YAML parser
+        shell: powershell
+        run: ./scripts/Restore-Dependencies.ps1
       - name: Syntax and native argument tests
         shell: powershell
         run: ./tests/Test-Static.ps1
@@ -32,6 +35,12 @@ jobs:
       - name: Profile and DPAPI tests (PowerShell 7)
         shell: pwsh
         run: ./tests/Test-Profile.ps1
+      - name: Import tests (Windows PowerShell 5.1)
+        shell: powershell
+        run: ./tests/Test-ProxyImport.ps1
+      - name: Import tests (PowerShell 7)
+        shell: pwsh
+        run: ./tests/Test-ProxyImport.ps1
       - name: Actual WFP loopback integration on disposable runner
         shell: powershell
         run: ./tests/Test-WfpIntegration.ps1 -AcknowledgeIsolatedTestHost

@@ -14,7 +14,7 @@ $destination = Join-Path ([Environment]::GetFolderPath('Desktop')) "$Name.lnk"
 if (Test-Path -LiteralPath $destination) { throw 'Shortcut exists. Choose another -Name or remove the previous shortcut yourself.' }
 $link = $shell.CreateShortcut($destination)
 $link.TargetPath = "$env:SystemRoot\System32\WindowsPowerShell\v1.0\powershell.exe"
-$link.Arguments = '-NoProfile -NoExit -File "{0}" -ProfileDirectory "{1}"' -f $script, $ProfileDirectory
+$link.Arguments = '-NoProfile -NoExit -ExecutionPolicy RemoteSigned -File "{0}" -ProfileDirectory "{1}"' -f $script, $ProfileDirectory
 $link.WorkingDirectory = (Resolve-Path -LiteralPath $WorkingDirectory).Path
 $link.Description = 'Claude with verified local proxy and per-executable WFP restrictions'
 $link.Save()

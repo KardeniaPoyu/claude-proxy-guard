@@ -23,7 +23,8 @@ Claude Proxy Guard 是一个 Windows Claude Code 启动器：核对本机代理�
 
 | 能力 | 实际行为 |
 | --- | --- |
-| 固定入口 | 只接受指定的 `127.0.0.1:端口` HTTP 代理 |
+| 自动导入 | 发现 NekoRay、Clash/Mihomo、v2rayN 的本地核心配置，选择一个节点生成独立入口 |
+| 固定入口 | 只接受指定的 `127.0.0.1:端口` HTTP 代理；导入配置不含 DIRECT、自动选择或切换组 |
 | 启动检查 | 检查 WFP 策略、代理进程、配置路径、文件 SHA-256 和预期出口 IPv4 |
 | 出站限制 | WFP 持久规则按 exe 路径阻断其他地址、端口、UDP 和 IPv6 |
 | 凭证保存 | token 使用当前 Windows 用户的 DPAPI 加密，启动时临时注入 |
@@ -34,12 +35,24 @@ Claude Proxy Guard 是一个 Windows Claude Code 启动器：核对本机代理�
 
 ## 快速开始
 
-### 1. 准备并构建
+### 1. 下载完整 ZIP
+
+从 [Releases](https://github.com/KardeniaPoyu/claude-proxy-guard/releases) 下载 `windows-x64.zip` 和对应 `.sha256`。不要把 GitHub 的 **Source code (zip)** 当安装包。
+
+```powershell
+Get-FileHash .\claude-proxy-guard-0.2.0-preview.1-windows-x64.zip -Algorithm SHA256
+```
+
+核对摘要后，在 ZIP 属性里点“解除锁定”（如显示），再解压到固定目录。预编译包未做代码签名；摘要只核对文件完整性。完整包已含 WFP helper 和 YAML 解析器，**普通使用者不需要安装 Visual Studio。**
 
 - Windows 10/11、PowerShell 5.1 或更新版本，以及安装策略所需的管理员批准权限。
 - 官方 Claude Code 原生 `claude.exe`；本项目不以共享 `node.exe` 作为入口。
-- 自己的 HTTP 代理：只监听 `127.0.0.1`，进程命令行含完整配置路径；上游配置应禁止直连和切换到其他节点。
-- Visual Studio C++ Build Tools 与 Windows SDK。
+- 已安装的 NekoRay、Clash/Mihomo 或 v2rayN，以及自己的有效节点。也可以手动接入现有专用 HTTP 代理。
+
+<details>
+<summary>开发者：从源码构建</summary>
+
+需要 Visual Studio C++ Build Tools 与 Windows SDK。
 
 在 **x64 Developer PowerShell for Visual Studio** 中执行：
 
@@ -47,20 +60,27 @@ Claude Proxy Guard 是一个 Windows Claude Code 启动器：核对本机代理�
 git clone https://github.com/KardeniaPoyu/claude-proxy-guard.git
 cd claude-proxy-guard
 .\scripts\Build.ps1
+.\scripts\Restore-Dependencies.ps1
 .\tests\Test-Static.ps1
 ```
+
+</details>
 
 之后使用普通权限 PowerShell 运行启动器。**不要以管理员权限启动 Claude。**
 
 ### 2. 运行配置向导
 
-关闭待限制的 Claude 及工具，保持代理运行：
+双击解压目录里的 **`Setup.cmd`**，第一个问题回车选择自动发现。也可在普通 PowerShell 中运行：
 
 ```powershell
 .\scripts\Setup.ps1
 ```
 
-向导收集程序路径、代理配置路径、端口和预期 IPv4，创建独立配置，并可继续保存 token、创建快捷方式。需要批量或手动配置时，参见[完整命令](docs/usage.md#创建配置与网络规则)。
+按顺序：**选配置 → 选节点 → 确认内核 → 核对出口 IP → 安装规则 → 保存 token → 建快捷方式**。安装规则前关闭待限制的 Claude。原客户端可以继续运行。
+
+找不到便携安装、需要导出节点或想了解凭证存放位置，见[自动发现教程](docs/client-discovery.md)。手动入口保留在向导的 `n` 选项，完整命令见[操作手册](docs/usage.md#创建配置与网络规则)。
+
+没有 token 时，先跳过向导的保存步骤，运行 `Start-Guard.ps1 -SetupToken`，自己完成官方授权后再运行 `Save-Token.ps1`。授权用的外部浏览器不由本项目接管，见[保存授权](docs/usage.md#保存授权)。
 
 配置默认保存在 `%LOCALAPPDATA%\ClaudeProxyGuard\default`，不要把这个目录提交到 Git。
 
@@ -79,7 +99,7 @@ cd claude-proxy-guard
 .\scripts\New-DesktopShortcut.ps1 -WorkingDirectory 'D:\Projects'
 ```
 
-以后双击 **Claude Proxy Guard**。每次启动会请求 UAC 检查策略。VS Code 使用方法见[操作手册](docs/usage.md#vs-code-集成终端)。
+以后双击 **Claude Proxy Guard**。导入配置会按需启动专用代理，每次启动会请求 UAC 检查策略。不设开机自启；停止方法见[自动发现教程](docs/client-discovery.md#启动和停止)。VS Code 使用方法见[操作手册](docs/usage.md#vs-code-集成终端)。
 
 ## 遇到问题
 
@@ -100,6 +120,7 @@ cd claude-proxy-guard
 ## 项目资料
 
 - [架构与信任边界](docs/security-model.md) — 什么被检查，什么不在保护范围内。
+- [客户端发现与节点导入](docs/client-discovery.md) — NekoRay、Clash/Mihomo、v2rayN 的支持范围和步骤。
 - [验证矩阵](docs/verification.md) — 已有证据、待验证项目、可复现测试步骤。
 - [FAQ](docs/faq.md) — 订阅、DNS、TUN、文件访问、云端 CC。
 - [贡献指南](CONTRIBUTING.md) · [安全报告](SECURITY.md) · [更新记录](CHANGELOG.md)

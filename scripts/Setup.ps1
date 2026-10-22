@@ -2,6 +2,10 @@
 if (Test-GuardAdministrator) { throw 'Open a normal PowerShell window. Setup will elevate only the WFP helper.' }
 [void](Get-GuardHelper)
 Write-Host 'Claude Proxy Guard | Windows setup' -ForegroundColor Cyan
+if ((Read-Host 'Discover/import a node from NekoRay, Clash/Mihomo or v2rayN? [Y/n]') -ne 'n') {
+    & "$PSScriptRoot\Setup-Auto.ps1"
+    return
+}
 Write-Host 'Start your dedicated HTTP proxy first. Close Claude. Never paste proxy passwords into these prompts.'
 $claude = (Read-Host 'Full path to native claude.exe').Trim('"')
 $proxy = (Read-Host 'Full path to the running proxy executable').Trim('"')

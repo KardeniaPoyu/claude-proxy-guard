@@ -47,6 +47,7 @@ function Get-GuardProfile([string]$Path) {
         if ($a.Path -eq $p.ProxyExe) { throw 'The proxy must never receive a client restriction.' }
     }
     if (@($p.Applications | Where-Object { $_.Path -eq $p.ClaudeExe }).Count -ne 1) { throw 'Claude executable has no unique WFP policy.' }
+    if ($p.PSObject.Properties['ImportedProxyDirectory']) { Assert-GuardPath $p.ImportedProxyDirectory }
     return $p
 }
 
@@ -141,7 +142,7 @@ function Set-GuardPrivateDirectory([string]$Directory) {
 function Write-GuardJsonAtomic($Value, [string]$Path) {
     $temp = $Path + '.' + [guid]::NewGuid().ToString('N') + '.tmp'
     try {
-        [IO.File]::WriteAllText($temp, ($Value | ConvertTo-Json -Depth 16), (New-Object Text.UTF8Encoding($false)))
+        [IO.File]::WriteAllText($temp, ($Value | ConvertTo-Json -Depth 32), (New-Object Text.UTF8Encoding($false)))
         if (Test-Path -LiteralPath $Path) { [IO.File]::Replace($temp, $Path, [NullString]::Value) } else { [IO.File]::Move($temp, $Path) }
     } finally { if (Test-Path -LiteralPath $temp) { Remove-Item -LiteralPath $temp -Force } }
 }

@@ -17,10 +17,13 @@ foreach ($dir in @('scripts','native','docs','examples')) {
     if (@(Get-ChildItem -LiteralPath $sourceDir -Recurse -Force | Where-Object { $_.Attributes -band [IO.FileAttributes]::ReparsePoint }).Count) { throw 'Refusing to package reparse points.' }
     Copy-Item -LiteralPath $sourceDir -Destination $stage -Recurse
 }
-foreach ($file in @('README.md','README.en.md','LICENSE','NOTICE.md','VERSION','SECURITY.md','CHANGELOG.md','CONTRIBUTING.md')) {
+foreach ($file in @('Setup.cmd','README.md','README.en.md','LICENSE','NOTICE.md','VERSION','SECURITY.md','CHANGELOG.md','CONTRIBUTING.md')) {
     Copy-Item -LiteralPath (Join-Path $root $file) -Destination $stage
 }
 Copy-Item -LiteralPath $helper -Destination "$stage\bin\proxy-guard.exe"
+$parser = Join-Path $root 'bin\YamlDotNet.dll'
+if (!(Test-Path -LiteralPath $parser) -or (Get-FileHash $parser -Algorithm SHA256).Hash -ne '9172f0758ed76963e0ede3b5ca9a1fb5b82f64c7e7a92cb3a6de39efa933a668') { throw 'Run Restore-Dependencies.ps1 before packaging.' }
+Copy-Item -LiteralPath $parser -Destination "$stage\bin\YamlDotNet.dll"
 $commit = & git -C $root rev-parse HEAD
 if ($LASTEXITCODE -ne 0) { throw 'Package from a Git checkout so provenance includes the commit.' }
 $manifest = [ordered]@{ project='claude-proxy-guard'; version=$Version; commit="$commit".Trim(); architecture='windows-x64'; builtUtc=[DateTime]::UtcNow.ToString('o'); signed=$false }
