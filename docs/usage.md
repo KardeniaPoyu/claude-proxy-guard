@@ -11,7 +11,7 @@
 | 系统 | Windows 10/11，PowerShell 5.1 或更新版本 |
 | Claude | 已安装的官方原生 `claude.exe` |
 | 代理 | HTTP 入口，只监听 `127.0.0.1` |
-| 代理启动方式 | 进程命令行中包含完整配置文件路径 |
+| 代理启动方式 | 同一 Windows 用户运行，完整配置路径为独立参数，如 `-c C:\Proxy\config.json`；不接受 `--config=路径` |
 | 上游 | 自己审查过，禁止直连及其他节点回退 |
 | 构建工具 | Visual Studio C++ Build Tools、Windows SDK |
 | 权限 | 普通用户运行 Claude；仅策略操作批准 UAC |
@@ -70,7 +70,15 @@
 
 ## 保存授权
 
-使用官方 `claude setup-token` 完成自己的授权；本项目不接管这一登录流程，也不负责 token 有效期或订阅状态。
+如果已有自己生成的有效 token，直接保存即可。没有 token 时，先完成上述初始化，再通过受检查的代理环境启动官方授权命令：
+
+```powershell
+.\scripts\Start-Guard.ps1 -SetupToken
+```
+
+它在验证策略、代理和出口后执行官方 `claude setup-token`，不要求预先存在 token 文件。自行完成浏览器授权，然后运行下面的保存命令。不要在已安装限制却未配置代理的普通终端直接授权。
+
+**外部浏览器不属于本项目的网络策略范围。** 请自行配置和核对浏览器网络；不要把授权 URL、code 或 token 发到 Issue。项目不负责账号资格、token 有效期或订阅状态，也没有使用真实账号测试本版本的授权流程。
 
 ```powershell
 .\scripts\Save-Token.ps1

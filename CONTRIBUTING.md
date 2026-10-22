@@ -21,7 +21,10 @@
 
 ```powershell
 .\scripts\Build.ps1
+.\scripts\Restore-Dependencies.ps1
 .\tests\Test-Static.ps1
+.\tests\Test-Profile.ps1
+.\tests\Test-ProxyImport.ps1
 ```
 
 测试不得使用真实 token、账号、生产代理或维护者个人配置。涉及 WFP 的测试必须有可重复的清理步骤，只操作自己创建的策略 ID。不要在无法恢复的远程主机上测试。
@@ -33,7 +36,7 @@
 - 使用独立、可追踪的策略 ID；卸载只清理对应策略。
 - 日志不包含 token、密码、完整代理配置或敏感请求头。
 - 安全承诺必须有对应测试；请写清仍然不覆盖的情况。
-- 不捆绑 Claude、代理软件或其他第三方二进制。
+- 不捆绑 Claude 或代理内核。其他必要第三方库必须固定版本与摘要，保留许可证并说明用途；当前仅捆绑 YamlDotNet 解析器。
 
 ## PR 应包含
 

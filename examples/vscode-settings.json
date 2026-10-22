@@ -5,6 +5,8 @@
       "args": [
         "-NoProfile",
         "-NoExit",
+        "-ExecutionPolicy",
+        "RemoteSigned",
         "-File",
         "C:\\Tools\\claude-proxy-guard\\scripts\\Start-Guard.ps1"
       ]

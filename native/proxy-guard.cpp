@@ -119,16 +119,58 @@ bool ParseArguments(int argc, wchar_t** argv, Policy& policy) {
 }
 
 bool MatchesSublayer(const FWPM_SUBLAYER0& sublayer, const Policy& policy) {
-    return sublayer.subLayerKey == policy.sublayer && SameText(sublayer.displayData.name, kSublayerName) &&
+    const bool valid = sublayer.subLayerKey == policy.sublayer && SameText(sublayer.displayData.name, kSublayerName) &&
         sublayer.flags == FWPM_SUBLAYER_FLAG_PERSISTENT && sublayer.weight == kSublayerWeight &&
         sublayer.providerKey == nullptr && sublayer.providerData.size == 0;
+    if (!valid) {
+        printf("Sublayer mismatch: key=%d name=%d flags=0x%08lX expectedFlags=0x%08lX weight=%u expectedWeight=%u provider=%d providerDataSize=%lu\n",
+            sublayer.subLayerKey == policy.sublayer, SameText(sublayer.displayData.name, kSublayerName),
+            static_cast<unsigned long>(sublayer.flags), static_cast<unsigned long>(FWPM_SUBLAYER_FLAG_PERSISTENT),
+            static_cast<unsigned>(sublayer.weight), static_cast<unsigned>(kSublayerWeight),
+            sublayer.providerKey != nullptr, static_cast<unsigned long>(sublayer.providerData.size));
+    }
+    return valid;
+}
+
+// Diagnostics contain policy metadata only: never executable identity bytes or paths.
+void PrintFilterDiagnostics(const FWPM_FILTER0& filter, const Policy& policy, size_t index) {
+    const GUID layer = index == 3 ? FWPM_LAYER_ALE_AUTH_CONNECT_V6 : FWPM_LAYER_ALE_AUTH_CONNECT_V4;
+    printf("Filter[%zu] metadata: key=%d sublayer=%d layer=%d name=%d flags=0x%08lX expectedFlags=0x%08lX action=0x%08lX expectedAction=0x%08lX weightType=%u expectedWeightType=%u provider=%d providerDataSize=%lu conditionCount=%lu\n",
+        index, filter.filterKey == policy.keys[index], filter.subLayerKey == policy.sublayer,
+        filter.layerKey == layer, SameText(filter.displayData.name, kFilterName),
+        static_cast<unsigned long>(filter.flags), static_cast<unsigned long>(kFilterFlags),
+        static_cast<unsigned long>(filter.action.type), static_cast<unsigned long>(FWP_ACTION_BLOCK),
+        static_cast<unsigned>(filter.weight.type), static_cast<unsigned>(FWP_UINT8),
+        filter.providerKey != nullptr, static_cast<unsigned long>(filter.providerData.size),
+        static_cast<unsigned long>(filter.numFilterConditions));
+    if (filter.weight.type == FWP_UINT8) printf("  weight8=%u expectedWeight8=%u\n", static_cast<unsigned>(filter.weight.uint8), static_cast<unsigned>(kFilterWeight));
+    if (filter.weight.type == FWP_UINT64 && filter.weight.uint64) printf("  weight64=%llu\n", static_cast<unsigned long long>(*filter.weight.uint64));
+    if (!filter.filterCondition) { puts("  conditions=null"); return; }
+    for (UINT32 i = 0; i < filter.numFilterConditions && i < 8; ++i) {
+        const FWPM_FILTER_CONDITION0& c = filter.filterCondition[i];
+        const char* field = c.fieldKey == FWPM_CONDITION_ALE_APP_ID ? "application" :
+            c.fieldKey == FWPM_CONDITION_IP_REMOTE_ADDRESS ? "remote-address" :
+            c.fieldKey == FWPM_CONDITION_IP_REMOTE_PORT ? "remote-port" :
+            c.fieldKey == FWPM_CONDITION_IP_PROTOCOL ? "protocol" : "unknown";
+        printf("  condition[%lu] field=%s match=%u valueType=%u", static_cast<unsigned long>(i), field,
+            static_cast<unsigned>(c.matchType), static_cast<unsigned>(c.conditionValue.type));
+        if (c.conditionValue.type == FWP_UINT8) printf(" uint8=%u", static_cast<unsigned>(c.conditionValue.uint8));
+        if (c.conditionValue.type == FWP_UINT16) printf(" uint16=%u", static_cast<unsigned>(c.conditionValue.uint16));
+        if (c.conditionValue.type == FWP_UINT32) printf(" uint32=0x%08lX", static_cast<unsigned long>(c.conditionValue.uint32));
+        if (c.conditionValue.type == FWP_BYTE_BLOB_TYPE) printf(" blobPresent=%d blobSize=%lu",
+            c.conditionValue.byteBlob != nullptr,
+            c.conditionValue.byteBlob ? static_cast<unsigned long>(c.conditionValue.byteBlob->size) : 0ul);
+        puts("");
+    }
 }
 bool MatchesFilter(const FWPM_FILTER0& filter, const Policy& policy, size_t index,
                    const FWP_BYTE_BLOB* appId) {
     const GUID layer = index == 3 ? FWPM_LAYER_ALE_AUTH_CONNECT_V6 : FWPM_LAYER_ALE_AUTH_CONNECT_V4;
     if (filter.filterKey != policy.keys[index] || filter.subLayerKey != policy.sublayer ||
         filter.layerKey != layer || !SameText(filter.displayData.name, kFilterName) ||
-        filter.flags != kFilterFlags || filter.action.type != FWP_ACTION_BLOCK ||
+        // BFE may add INDEXED to an installed filter. No other extra flags (in
+        // particular DISABLED) are acceptable for an enforced client policy.
+        (filter.flags & ~FWPM_FILTER_FLAG_INDEXED) != kFilterFlags || filter.action.type != FWP_ACTION_BLOCK ||
         filter.weight.type != FWP_UINT8 || filter.weight.uint8 != kFilterWeight ||
         filter.providerKey != nullptr || filter.providerData.size != 0 ||
         filter.numFilterConditions != (index == 3 ? 1u : 2u) || !filter.filterCondition) return false;
@@ -172,7 +214,11 @@ DWORD InspectPolicy(HANDLE engine, const Policy& policy, const FWP_BYTE_BLOB* ap
         result = FwpmFilterGetByKey0(engine, &policy.keys[i], &filter.value);
         if (result != ERROR_SUCCESS && result != FWP_E_FILTER_NOT_FOUND) return result;
         if (result == ERROR_SUCCESS) {
-            if (!existing.sublayer || !MatchesFilter(*filter.value, policy, i, appId)) return ERROR_INVALID_DATA;
+            if (!existing.sublayer || !MatchesFilter(*filter.value, policy, i, appId)) {
+                PrintFilterDiagnostics(*filter.value, policy, i);
+                if (appId) printf("  expectedAppBlobSize=%lu\n", static_cast<unsigned long>(appId->size));
+                return ERROR_INVALID_DATA;
+            }
             existing.filters[i] = true;
         }
     }

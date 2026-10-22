@@ -12,12 +12,25 @@
 | PowerShell 语法 | 初版测试通过 | 脚本可解析；不保证所有运行分支 |
 | helper 非法参数拒绝 | 初版测试通过 | 部分非法输入在操作 WFP 前被拒绝 |
 | profile 参数校验 | 初版测试通过 | 被覆盖的非法端口、IPv6 预期出口被拒绝 |
-| 通用版实际 WFP 阻断 | 待记录可复现结果 | 不能沿用私人部署脚本的测试结论 |
-| 代理停止、恢复及出口检查 | 待记录可复现结果 | 需要包含断线时新建连接尝试 |
+| 通用版实际 WFP 阻断 | Windows Server 2022/2025 CI 通过 | 指定 loopback TCP 入口允许；其他地址、端口、UDP、IPv6 被阻断 |
+| 代理停止、恢复与卸载 | 同一 CI 通过 | 停止期间新连接失败，恢复后指定入口可用；卸载后基线连接恢复 |
+| 节点发现与导入 | 32 项离线测试，PS 5.1/7 | JSON/YAML、单节点提取、链式/不安全配置拒绝、扫描范围与解析错误脱敏 |
+| 实际代理核心格式和启停 | 本机普通用户测试通过 | sing-box 1.14.3、Mihomo 1.19.33、Xray 26.3.27，虚构 HTTP/TUIC/VLESS 配置 |
+| 通用版 Claude 真实账号端到端 | 未测试 | 不把私人环境授权成功视为开源发行版证明 |
 | Windows 10/11 全面兼容性 | 未完成 | CI runner 不代表所有用户系统 |
 | 第三方安全审计 | 未进行 | 不应宣传已获独立安全认证 |
 
 最新 CI 状态可在 [GitHub Actions](https://github.com/KardeniaPoyu/claude-proxy-guard/actions) 查看。新增验证时，应更新这一页，注明测试命令和对应的证据，不能只把“待验证”改成“已通过”。
+
+WFP 首次完整通过的基线：commit `ff4d33e`，[run 39775013146](https://github.com/KardeniaPoyu/claude-proxy-guard/actions/runs/39775013146)。每次后续提交在同一双系统矩阵复测；下载该次 workflow artifact 中的 `wfp-integration-results.json` 可查看结果。
+
+本机核心测试只使用 `203.0.113.1` 与虚构凭证，不向真实上游发请求；验证配置可被官方核心接受，以及专用监听、PID/启动时间归属、重复启动和精确停止。**这不等于全部协议的真实转发与 DNS 抓包已经验证。** 源码中的复现入口：
+
+```powershell
+.\tests\Test-CoreCompatibility.ps1 -SingBoxExe 'C:\Cores\sing-box.exe' -MihomoExe 'C:\Cores\mihomo.exe' -XrayExe 'C:\Cores\xray.exe'
+```
+
+在普通用户 PowerShell 中运行，不修改 WFP/TUN/系统代理。内核从各自官方发行页获取并校验；测试脚本不会自动下载或执行未知内核。结果写入 `build/core-compatibility-results.json`。发行 ZIP 不包含测试内核。
 
 ## 自己部署后的验收
 

@@ -19,6 +19,7 @@ Claude Proxy Guard checks a local HTTP proxy and its expected IPv4 exit before l
 
 ## What it does
 
+- Discovers readable NekoRay/sing-box, Clash/Mihomo and v2rayN/Xray configs; imports one chosen node into a separate, pinned proxy without altering the original client.
 - Checks the WFP policies, proxy process, config path, binary/config hashes and expected exit IPv4 before launch.
 - Blocks specified executable paths from connecting to other destination addresses/ports, UDP or IPv6.
 - Stores your token encrypted for the current Windows user and injects it into the launched process environment.
@@ -29,14 +30,21 @@ Claude Proxy Guard checks a local HTTP proxy and its expected IPv4 exit before l
 
 ## Quick start
 
-Requirements: Windows 10/11, PowerShell 5.1+, an official native `claude.exe`, Visual Studio C++ Build Tools + Windows SDK, and permission to approve WFP operations. The HTTP proxy must listen only on `127.0.0.1`, have its full config path in its command line, and be configured without direct or alternate upstream fallback.
+Requirements: Windows 10/11, PowerShell 5.1+, an official native `claude.exe`, an installed proxy core with your own valid node, and permission to approve WFP operations.
 
-Build in **x64 Developer PowerShell for Visual Studio**:
+Download the complete **windows-x64.zip** from [Releases](https://github.com/KardeniaPoyu/claude-proxy-guard/releases), verify its SHA-256, unblock the ZIP in Windows Properties if necessary, then extract and double-click **Setup.cmd**. The full package includes the helper and YAML parser; end users do not need Visual Studio. Binaries are unsigned.
+
+Press Enter at the first prompt: **discover config → choose node → confirm core → verify exit IPv4 → install WFP → save token → create shortcut**. The shortcut starts the imported proxy on demand, without login autostart. Original clients stay unchanged. GUI databases and remote subscriptions require a local core-config export; see [import support and limitations](docs/client-discovery.md).
+
+For manual setup, the HTTP proxy must run as the same Windows user, listen only on `127.0.0.1`, and take its absolute config path as a separate argument. Disable direct and alternate-upstream fallback in that proxy yourself.
+
+Developers can instead build with C++ Build Tools + Windows SDK in **x64 Developer PowerShell for Visual Studio**:
 
 ```powershell
 git clone https://github.com/KardeniaPoyu/claude-proxy-guard.git
 cd claude-proxy-guard
 .\scripts\Build.ps1
+.\scripts\Restore-Dependencies.ps1
 .\tests\Test-Static.ps1
 ```
 
@@ -48,7 +56,7 @@ Run the setup wizard from a normal, non-administrator PowerShell. Close target e
 .\scripts\Start-Guard.ps1
 ```
 
-The wizard collects your program paths, local proxy port and expected exit IPv4. It can also save your own token and create a desktop shortcut. Only the policy helper should elevate. The default profile directory is `%LOCALAPPDATA%\ClaudeProxyGuard\default`; never commit it.
+Only the policy helper should elevate. The default profile directory is `%LOCALAPPDATA%\ClaudeProxyGuard\default`; the imported node lives in `default-proxy` and contains plaintext proxy credentials protected by directory ACLs. Never commit either directory. Without an existing token, use `Start-Guard.ps1 -SetupToken`, complete the official authorization yourself, then `Save-Token.ps1`; the external authorization browser is outside this launcher's policy.
 
 For scripted initialization, see the [usage guide](docs/usage.md). Validate network behavior on a recoverable test machine before relying on it.
 

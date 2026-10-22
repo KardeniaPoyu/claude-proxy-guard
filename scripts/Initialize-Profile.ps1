@@ -5,7 +5,8 @@ param(
     [Parameter(Mandatory)][string]$ExpectedIPv4,
     [int]$Port = 2082,
     [string]$ProfileDirectory = "$env:LOCALAPPDATA\ClaudeProxyGuard\default",
-    [string[]]$AdditionalExecutables = @()
+    [string[]]$AdditionalExecutables = @(),
+    [string]$ImportedProxyDirectory
 )
 . "$PSScriptRoot\Common.ps1"
 if (Test-GuardAdministrator) { throw 'Run setup as your normal Windows user. Only the WFP helper will request elevation.' }
@@ -28,6 +29,10 @@ $p = [ordered]@{
     ProxyConfigHash = (Get-FileHash -LiteralPath $paths[2] -Algorithm SHA256).Hash
     HelperHash = (Get-FileHash -LiteralPath $helper -Algorithm SHA256).Hash
     Applications = $apps
+}
+if ($ImportedProxyDirectory) {
+    Assert-GuardPath $ImportedProxyDirectory
+    $p.ImportedProxyDirectory = $ImportedProxyDirectory
 }
 if ([System.Net.IPAddress]::Parse($ExpectedIPv4).AddressFamily -ne 'InterNetwork') { throw 'Expected exit must be IPv4.' }
 if ($Port -lt 1 -or $Port -gt 65535) { throw 'Invalid port.' }
