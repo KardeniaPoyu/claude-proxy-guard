@@ -1,0 +1,41 @@
+name: Bug report / 问题反馈
+description: Report a reproducible problem without secrets / 提交可复现且脱敏的问题
+title: "[Bug]: "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Do not attach tokens, full proxy configs, credentials or personal logs. Security vulnerabilities belong in private reporting.
+        不要上传 token、完整代理配置、凭证或个人日志。安全漏洞请使用仓库 Security 的私密报告入口。
+  - type: textarea
+    id: environment
+    attributes:
+      label: Versions / 版本
+      description: Project commit/version, Windows build, PowerShell, Claude Code and proxy software versions.
+    validations:
+      required: true
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Steps to reproduce / 复现步骤
+      description: Include script names and sanitized arguments; replace private paths/IPs with placeholders.
+    validations:
+      required: true
+  - type: textarea
+    id: behavior
+    attributes:
+      label: Expected and actual behavior / 预期与实际结果
+    validations:
+      required: true
+  - type: textarea
+    id: diagnostics
+    attributes:
+      label: Sanitized diagnostics / 脱敏诊断
+      description: Exact error text and what you have already checked. Never print the full environment or token.
+  - type: checkboxes
+    id: privacy
+    attributes:
+      label: Privacy check / 隐私检查
+      options:
+        - label: I removed secrets and private identifiers / 我已移除凭证及私人信息
+          required: true

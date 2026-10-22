@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Private security report / 私密安全报告
+    url: https://github.com/KardeniaPoyu/claude-proxy-guard/security/advisories/new
+    about: Report vulnerabilities without exposing secrets publicly.
+  - name: Troubleshooting / 排错手册
+    url: https://github.com/KardeniaPoyu/claude-proxy-guard/blob/main/docs/troubleshooting.md
+    about: Check common startup, proxy, authorization and uninstall problems.

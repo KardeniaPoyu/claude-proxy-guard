@@ -1,7 +1,11 @@
 bin/
 build/
+dist/
 private/
 *.dpapi
 *.log
 *.zip
 profile.json
+*.tmp
+*.pdb
+*.obj

@@ -1,0 +1,37 @@
+name: Compatibility / network test report
+description: 分享可复现的兼容性或网络验证结果
+title: "[Test]: "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Test on a recoverable machine using disposable executables. Do not interrupt your only remote connection.
+        请在可恢复的测试机中使用专用测试程序，不要影响唯一的远程连接。不要附带秘密或完整抓包。
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment / 环境
+      description: Commit/version, Windows build, PowerShell, test executable and proxy versions.
+    validations:
+      required: true
+  - type: textarea
+    id: procedure
+    attributes:
+      label: Commands and procedure / 命令与步骤
+      description: Explain whether each test used a newly created connection.
+    validations:
+      required: true
+  - type: textarea
+    id: results
+    attributes:
+      label: Results / 结果
+      description: Include allowed proxy TCP, other address/port, UDP, IPv6, proxy stopped/restored, and anything not tested.
+    validations:
+      required: true
+  - type: textarea
+    id: cleanup
+    attributes:
+      label: Cleanup / 清理
+      description: Confirm how test policies were removed, or describe a cleanup failure.
+    validations:
+      required: true

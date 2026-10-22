@@ -1,0 +1,13 @@
+{
+  "terminal.integrated.profiles.windows": {
+    "Claude Proxy Guard": {
+      "path": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
+      "args": [
+        "-NoProfile",
+        "-NoExit",
+        "-File",
+        "C:\\Tools\\claude-proxy-guard\\scripts\\Start-Guard.ps1"
+      ]
+    }
+  }
+}

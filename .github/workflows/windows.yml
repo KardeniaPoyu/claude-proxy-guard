@@ -1,14 +1,50 @@
 name: Windows build
-on: [push, pull_request]
+on: [push, pull_request, workflow_dispatch]
+permissions:
+  contents: read
+concurrency:
+  group: windows-${{ github.ref }}
+  cancel-in-progress: true
 jobs:
   build:
-    runs-on: windows-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-2022, windows-2025]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 15
     steps:
-      - uses: actions/checkout@v4
-      - uses: ilammy/msvc-dev-cmd@v1
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - uses: ilammy/msvc-dev-cmd@0b201ec74fa43914dc39ae48a89fd1d8cb592756 # v1
         with:
           arch: x64
-      - shell: powershell
+      - name: Build hardened native helper
+        shell: powershell
         run: ./scripts/Build.ps1
-      - shell: powershell
+      - name: Syntax and native argument tests
+        shell: powershell
         run: ./tests/Test-Static.ps1
+      - name: Profile and DPAPI tests (Windows PowerShell 5.1)
+        shell: powershell
+        run: ./tests/Test-Profile.ps1
+      - name: Profile and DPAPI tests (PowerShell 7)
+        shell: pwsh
+        run: ./tests/Test-Profile.ps1
+      - name: Actual WFP loopback integration on disposable runner
+        shell: powershell
+        run: ./tests/Test-WfpIntegration.ps1 -AcknowledgeIsolatedTestHost
+      - name: Package source, helper and checksums
+        shell: powershell
+        run: ./scripts/Package.ps1 -Version (Get-Content VERSION -Raw).Trim()
+      - name: Upload package and network test evidence
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: windows-preview-${{ matrix.os }}
+          path: |
+            dist/*.zip
+            dist/*.sha256
+            build/wfp-integration-results.json
+          if-no-files-found: error
+          retention-days: 14

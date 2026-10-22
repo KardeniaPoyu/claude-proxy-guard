@@ -1,0 +1,22 @@
+name: Feature request / 功能建议
+description: Suggest a focused improvement / 提出具体改进
+title: "[Feature]: "
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem to solve / 要解决的问题
+      description: Describe the user workflow and where it fails or becomes difficult.
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed behavior / 期望行为
+    validations:
+      required: true
+  - type: textarea
+    id: boundaries
+    attributes:
+      label: Security and compatibility / 安全与兼容
+      description: Does this change persistent rules, admin privileges, tokens, proxy fallback or supported platforms?
