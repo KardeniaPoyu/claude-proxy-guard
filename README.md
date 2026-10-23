@@ -2,7 +2,7 @@
 
 # Claude Proxy Guard
 
-**为 Windows Claude Code 提供固定代理、断线阻断和可验证诊断的一键启动工具。**
+**复用电脑里已有的代理节点，为 Windows Claude Code 建立专用开发入口。**
 
 [![Windows build](https://github.com/KardeniaPoyu/claude-proxy-guard/actions/workflows/windows.yml/badge.svg)](https://github.com/KardeniaPoyu/claude-proxy-guard/actions/workflows/windows.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
@@ -13,7 +13,11 @@
 
 </div>
 
-你已经有 Claude Code 和可用代理，希望每次开发都从同一个专用入口启动，代理不可用时让连接失败。Claude Proxy Guard 把**选节点、装连接限制、保存授权、建快捷方式和排错**串成一套 Windows 工作流程，可用于桌面快捷方式或 VS Code 集成终端。
+已经在用 NekoRay、Clash/Mihomo 或 v2rayN？从可读取的本地配置中选一个节点，为 CC 生成独立代理入口；以后从桌面快捷方式或 VS Code 集成终端启动。无需为此改动整机 TUN 或切换原客户端节点。
+
+**发现已有配置 → 选择一个节点 → 确认保存位置和出口 → 建立 CC 入口。**
+
+适合希望 CC 固定使用一个代理、其他应用继续使用原有网络设置的 Windows 用户。规则按 exe 路径生效，同一路径的其他实例也会受限。项目的差异在于安装与验证流程的整合；配置完善的 TUN 也能实现代理接管和断线阻断，本项目不声称更能避免封号。
 
 启动前核验代理进程、配置文件和预期 IPv4；运行时，由 Windows Filtering Platform（WFP）限制已登记的 exe 只能连接指定本机 TCP 端口。导入的专用代理只保留选定节点，不携带 DIRECT 或自动切换组。**固定的是本机入口和导入配置；远端服务的路由仍需核验，出口检查不是持续监控。**
 
@@ -25,9 +29,9 @@
 
 | 你需要的能力 | 本项目的做法 |
 | --- | --- |
+| 复用已有节点，减少手填 | 从 NekoRay、Clash/Mihomo、v2rayN 的可读取本地核心配置中选一个节点，生成独立入口，不修改原客户端；不支持所有 GUI 数据库或订阅格式 |
 | 代理断开后阻断连接 | 环境变量告诉 CC 如何使用代理；WFP 持久规则负责阻断已登记 exe 的其他地址、端口、UDP 和 IPv6 连接 |
 | 避免误用另一个代理 | 启动前核对实际监听进程、配置路径、文件 SHA-256、WFP 规则和预期 IPv4；检查失败就停止启动 |
-| 复用已有节点，减少手填 | 从 NekoRay、Clash/Mihomo、v2rayN 的可读取本地核心配置中选一个节点，生成独立入口，不修改原客户端；不支持所有 GUI 数据库或订阅格式 |
 | 独立开发入口 | 专用 `CLAUDE_CONFIG_DIR`、DPAPI 加密 token、桌面/VS Code 终端入口；默认禁用 MCP 和项目级设置来源，不设开机自启 |
 | 能解释、能复现的诊断 | 分项检查出口和服务响应，导出脱敏报告；Windows CI 实测 WFP 阻断、代理停止与恢复，未检测的项目明确标注 |
 
@@ -104,6 +108,8 @@ cd claude-proxy-guard
 之后使用普通权限 PowerShell 运行启动器。**不要以管理员权限启动 Claude。**
 
 ### 2. 运行配置向导
+
+当前源码的增强向导支持 `R` 重新扫描、`D` 指定便携版目录、`F` 选择导出的 JSON/YAML；编号错误可重选，菜单输入 `Q` 取消。这些增强尚未包含在上面的 `0.3.0-preview.1` ZIP 中。
 
 双击解压目录里的 **`Setup.cmd`**，第一个问题回车选择自动发现。也可在普通 PowerShell 中运行：
 

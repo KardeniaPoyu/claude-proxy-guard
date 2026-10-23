@@ -26,6 +26,7 @@ jobs:
           ./tests/Test-Static.ps1
           ./tests/Test-Profile.ps1
           ./tests/Test-ProxyImport.ps1
+          ./tests/Test-SetupWizard.ps1
           ./tests/Test-Diagnostics.ps1
           ./tests/Test-WfpIntegration.ps1 -AcknowledgeIsolatedTestHost
           ./scripts/Package.ps1 -Version (Get-Content VERSION -Raw).Trim()

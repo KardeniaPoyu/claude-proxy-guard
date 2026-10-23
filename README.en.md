@@ -2,7 +2,7 @@
 
 # Claude Proxy Guard
 
-**A Windows launcher for Claude Code with a fixed proxy, fail-closed connections and verifiable diagnostics.**
+**Turn an existing proxy node into a dedicated Claude Code development entry point on Windows.**
 
 [![Windows build](https://github.com/KardeniaPoyu/claude-proxy-guard/actions/workflows/windows.yml/badge.svg)](https://github.com/KardeniaPoyu/claude-proxy-guard/actions/workflows/windows.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
@@ -11,7 +11,11 @@
 
 </div>
 
-You already have Claude Code and a working proxy, and want a repeatable development entry point that fails when that proxy is unavailable. Claude Proxy Guard combines node selection, connection restrictions, credential storage, shortcuts and troubleshooting for Windows desktop and VS Code integrated-terminal use.
+Already using NekoRay, Clash/Mihomo or v2rayN? Select one node from a readable local config, create a separate proxy entry, then launch CC from a desktop shortcut or VS Code integrated terminal. No changes to whole-machine TUN or the original client selection are needed.
+
+**Discover a config → choose one node → confirm storage and exit → create the CC entry point.**
+
+For Windows users who want CC on a fixed proxy while other applications keep their existing network configuration. Restrictions follow executable paths, so other instances at the same path are also affected. The distinction is the integrated setup and verification workflow: a correctly configured TUN can also provide proxy routing and outage blocking. This project does not claim better account-ban prevention.
 
 Before launch it verifies the proxy process, pinned files and expected IPv4. During use, persistent Windows Filtering Platform (WFP) policies restrict registered executables to the selected loopback TCP port. An imported proxy keeps one chosen node without DIRECT or automatic switching groups. **The local entry point and imported configuration are fixed; the remote service's routing still needs verification. Exit checks are not continuous monitoring.**
 
@@ -64,6 +68,8 @@ Results distinguish **PASS / FAIL / WARN / NOT_CHECKED**. A timeout is not proof
 ![Screenshot of the actual report UI using labeled synthetic fixtures, not measurements of this computer](docs/assets/diagnostics-example.png)
 
 ## Quick start
+
+The enhanced wizard in current source adds rescan (`R`), portable-client folder search (`D`), exported-file selection (`F`), retryable choices and cancel (`Q`). These wizard improvements are not included in the `0.3.0-preview.1` ZIP linked below.
 
 [Windows x64 ZIP](https://github.com/KardeniaPoyu/claude-proxy-guard/releases/download/v0.3.0-preview.1/claude-proxy-guard-0.3.0-preview.1-windows-x64.zip) · [SHA-256](https://github.com/KardeniaPoyu/claude-proxy-guard/releases/download/v0.3.0-preview.1/claude-proxy-guard-0.3.0-preview.1-windows-x64.zip.sha256)
 
