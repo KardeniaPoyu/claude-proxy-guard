@@ -50,7 +50,7 @@ General proxy clients manage nodes and routing; IP-check websites observe the br
 
 ## Diagnose without an account
 
-**Version note:** this page describes the current source. The published `0.2.0-preview.1` ZIP does not include `Diagnose.cmd` or the new reports. Build the current source to use them, or wait for a subsequent release containing them; consult each release's notes for its contents.
+**Current preview:** [0.3.0-preview.1](https://github.com/KardeniaPoyu/claude-proxy-guard/releases/tag/v0.3.0-preview.1) includes `Diagnose.cmd` and HTML/JSON reports.
 
 Start your dedicated proxy, then double-click **Diagnose.cmd**. It compares two HTTPS exit observations against the pinned IPv4, probes IPv6 egress, and checks Claude web/API and release metadata. It exports a private, self-contained HTML report plus JSON, without credentials, raw IPs, private paths or response bodies.
 
@@ -64,6 +64,8 @@ Results distinguish **PASS / FAIL / WARN / NOT_CHECKED**. A timeout is not proof
 ![Screenshot of the actual report UI using labeled synthetic fixtures, not measurements of this computer](docs/assets/diagnostics-example.png)
 
 ## Quick start
+
+[Windows x64 ZIP](https://github.com/KardeniaPoyu/claude-proxy-guard/releases/download/v0.3.0-preview.1/claude-proxy-guard-0.3.0-preview.1-windows-x64.zip) · [SHA-256](https://github.com/KardeniaPoyu/claude-proxy-guard/releases/download/v0.3.0-preview.1/claude-proxy-guard-0.3.0-preview.1-windows-x64.zip.sha256)
 
 Requirements: Windows 10/11, PowerShell 5.1+, an official native `claude.exe`, an installed proxy core with your own valid node, and permission to approve WFP operations.
 
