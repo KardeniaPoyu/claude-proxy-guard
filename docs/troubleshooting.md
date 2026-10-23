@@ -1,5 +1,7 @@
 # 排错
 
+新增：双击 `Diagnose.cmd`，或运行 `Test-Guard.ps1 -ExtendedNetwork -ExportReport -OpenReport`，取得脱敏 HTML/JSON 报告。结果和 HTTP 状态的解释见[诊断操作说明](diagnostics.md)。`-Offline` 可避免所有公网探测；需要核对实际 WFP 内容再加 `-VerifyPolicy`。
+
 [返回首页](../README.md) · [操作手册](usage.md)
 
 先用诊断命令收集状态：

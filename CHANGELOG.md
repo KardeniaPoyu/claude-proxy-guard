@@ -2,6 +2,14 @@
 
 所有行为变化和验证范围以具体版本为准。尚未发布的内容列在 Unreleased；不会把测试计划写成已完成结果。
 
+## Unreleased
+
+- 新增 `Diagnose.cmd`：多源出口、IPv6 出站、Claude 网页/API 与更新元数据检查，以及脱敏 HTML/JSON 报告。
+- 明确区分 PASS、FAIL、WARN、NOT_CHECKED；代理文件/监听身份校验失败后跳过公网探测；支持完全离线检查。
+- 探测固定使用专用 HTTP 代理，无账号凭证、跳转跟随或直连回退；拒绝本机检测目标以避开 .NET Framework 的隐式 loopback 绕过行为。
+- 增加前台/共享后台会话的支持边界与入口拒绝检查，补充 CCbaga、Net.Coffee、BrowserLeaks、官方文档的研究对应表。
+- 增加 Windows PowerShell 5.1/7 诊断与假代理测试并接入 CI；真实 WFP 仍由隔离 runner 验证。
+
 ## 0.2.0-preview.1 — 2026-10-22
 
 ### Added

@@ -44,6 +44,12 @@ jobs:
       - name: Actual WFP loopback integration on disposable runner
         shell: powershell
         run: ./tests/Test-WfpIntegration.ps1 -AcknowledgeIsolatedTestHost
+      - name: Diagnostics and fake proxy tests (Windows PowerShell 5.1)
+        shell: powershell
+        run: ./tests/Test-Diagnostics.ps1
+      - name: Diagnostics and fake proxy tests (PowerShell 7)
+        shell: pwsh
+        run: ./tests/Test-Diagnostics.ps1
       - name: Package source, helper and checksums
         shell: powershell
         run: ./scripts/Package.ps1 -Version (Get-Content VERSION -Raw).Trim()
