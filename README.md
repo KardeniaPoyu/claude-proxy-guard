@@ -33,6 +33,20 @@ Claude Proxy Guard 是一个 Windows Claude Code 启动器：核对本机代理�
 
 **保护范围是列入策略的 exe。** 未列入的子进程、Windows 代发的 DNS、代理自身的上游选择，不由这些规则完整覆盖。启动时的出口检查也不是持续监控。[查看详细边界 →](docs/security-model.md)
 
+## 一键诊断
+
+启动专用代理后，双击 **`Diagnose.cmd`**：核对两处 HTTPS 出口、探测 IPv6 出站、查看 Claude 网页/API 和更新源响应，并生成本地 HTML + JSON 报告。无须登录或提供 token，不停止现有代理。
+
+```powershell
+.\scripts\Test-Guard.ps1 -ExtendedNetwork -ExportReport -OpenReport
+# 只检查本地状态，不访问检测站：
+.\scripts\Test-Guard.ps1 -Offline -ExportReport
+```
+
+报告区分 **PASS / FAIL / WARN / NOT_CHECKED**，不导出真实 IP、私人路径、响应正文或凭证。DNS、WebRTC、断线直连没有实测时明确标为未检查；不把第三方评分或 HTTP 403 当成账号风险结论。详见[诊断操作说明与参考来源](docs/diagnostics.md)。
+
+![诊断报告实际页面截图，使用明确标注的虚构样例，不是本机检测结果](docs/assets/diagnostics-example.png)
+
 ## 快速开始
 
 ### 1. 下载完整 ZIP

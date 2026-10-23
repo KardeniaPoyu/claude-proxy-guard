@@ -18,7 +18,7 @@ foreach ($dir in $allowedDirs) {
     $sourceDir = Join-Path $root $dir
     if (@(Get-ChildItem -LiteralPath $sourceDir -Recurse -Force | Where-Object { $_.Attributes -band [IO.FileAttributes]::ReparsePoint }).Count) { throw 'Refusing to package reparse points.' }
 }
-$allowedFiles=@('Setup.cmd','README.md','README.en.md','LICENSE','NOTICE.md','VERSION','SECURITY.md','CHANGELOG.md','CONTRIBUTING.md','CODE_OF_CONDUCT.md')
+$allowedFiles=@('Setup.cmd','Diagnose.cmd','README.md','README.en.md','LICENSE','NOTICE.md','VERSION','SECURITY.md','CHANGELOG.md','CONTRIBUTING.md','CODE_OF_CONDUCT.md')
 $tracked=@(& git -C $root -c core.quotepath=false ls-files -- @allowedDirs @allowedFiles)
 if ($LASTEXITCODE -ne 0 -or !$tracked.Count) { throw 'Unable to enumerate tracked release sources.' }
 foreach ($file in $tracked) {

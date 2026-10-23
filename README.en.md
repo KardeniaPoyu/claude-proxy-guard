@@ -28,6 +28,19 @@ Claude Proxy Guard checks a local HTTP proxy and its expected IPv4 exit before l
 
 **Scope matters:** unlisted child processes, delegated Windows DNS, the proxy's upstream routing and existing connections require separate consideration. The exit check runs at startup, not continuously. Same-user malicious code and administrators are outside the threat model.
 
+## Diagnose without an account
+
+Start your dedicated proxy, then double-click **Diagnose.cmd**. It compares two HTTPS exit observations against the pinned IPv4, probes IPv6 egress, and checks Claude web/API and release metadata. It exports a private, self-contained HTML report plus JSON, without credentials, raw IPs, private paths or response bodies.
+
+```powershell
+.\scripts\Test-Guard.ps1 -ExtendedNetwork -ExportReport -OpenReport
+.\scripts\Test-Guard.ps1 -Offline -ExportReport
+```
+
+Results distinguish **PASS / FAIL / WARN / NOT_CHECKED**. A timeout is not proof of IPv6 blocking, and HTTP 403 is not an IP-reputation verdict. DNS, WebRTC, outage behavior and shared background sessions remain explicitly unverified. No proxy is stopped and no network policy is changed. See the [diagnostic guide and sources](docs/diagnostics.md).
+
+![Screenshot of the actual report UI using labeled synthetic fixtures, not measurements of this computer](docs/assets/diagnostics-example.png)
+
 ## Quick start
 
 Requirements: Windows 10/11, PowerShell 5.1+, an official native `claude.exe`, an installed proxy core with your own valid node, and permission to approve WFP operations.

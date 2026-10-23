@@ -67,9 +67,15 @@ try {
     } finally { $secret.Dispose() }
     $count++; Write-Host '[PASS] DPAPI file roundtrip with and without CRLF'
     Assert-GuardLaunchInputs $work @('--model','sonnet'); $count++; Write-Host '[PASS] Normal model option'
+    Assert-GuardLaunchInputs $work $null; $count++; Write-Host '[PASS] Default launch without arguments'
     foreach ($arg in @('--bare','--settings=x','--setting-sources','--mcp-config=x','--plugin-dir=x')) {
         Expect-Rejection "Guarded CLI option $arg" { Assert-GuardLaunchInputs $work @($arg) }
     }
+    foreach ($arg in @('--bg','--bg=true','agents','daemon')) {
+        Expect-Rejection "Unsupported shared background entry $arg" { Assert-GuardLaunchInputs $work @($arg) }
+    }
+    Assert-GuardLaunchInputs $work @('--model','sonnet','Explain background agents')
+    $count++; Write-Host '[PASS] Foreground prompt mentioning agents is allowed'
     $settings = Join-Path $work 'settings.json'
     foreach ($value in @(@{env=@{https_proxy='http://127.0.0.1:9'}}, @{apiKeyHelper='untrusted.exe'}, @{env=@{ANTHROPIC_BASE_URL='https://example.invalid'}})) {
         Write-GuardJsonAtomic $value $settings

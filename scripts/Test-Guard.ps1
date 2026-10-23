@@ -1,27 +1,31 @@
 param(
     [string]$ProfileDirectory = "$env:LOCALAPPDATA\ClaudeProxyGuard\default",
-    [switch]$VerifyPolicy
+    [switch]$VerifyPolicy,
+    [switch]$ExtendedNetwork,
+    [switch]$Offline,
+    [switch]$ExportReport,
+    [switch]$OpenReport
 )
 . "$PSScriptRoot\Common.ps1"
-$failed = $false
-$p = $null
-function Show-GuardCheck([string]$Name, [scriptblock]$Check) {
-    try { & $Check; Write-Host "[PASS] $Name" -ForegroundColor Green }
-    catch { $script:failed = $true; Write-Host "[FAIL] $Name -- $($_.Exception.Message)" -ForegroundColor Red }
+. "$PSScriptRoot\Diagnostics.ps1"
+if ($OpenReport -and !$ExportReport) { throw '-OpenReport requires -ExportReport.' }
+if ($Offline -and $ExtendedNetwork) { throw 'Choose -Offline or -ExtendedNetwork.' }
+Write-Host 'Claude Proxy Guard diagnostics: no token decryption or network rule changes.'
+if (!$Offline) {
+    Write-Host 'Basic mode contacts api.ipify.org through the verified proxy.'
+    if ($ExtendedNetwork) { Write-Host 'Extended mode also contacts Cloudflare, api6.ipify.org, Claude web/API and release metadata. No account authorization is sent.' }
 }
-Write-Host 'Claude Proxy Guard diagnostics (does not read token plaintext or change network rules)'
-Write-Host ("Windows: {0} | PowerShell: {1}" -f [Environment]::OSVersion.VersionString, $PSVersionTable.PSVersion)
-Write-Host ("Project: {0}" -f (Get-Content -LiteralPath (Join-Path $script:GuardRoot 'VERSION') -Raw).Trim())
-try { $p = Get-GuardProfile (Join-Path $ProfileDirectory 'profile.json'); Write-Host '[PASS] Profile schema and paths' }
-catch { Write-Error $_ -ErrorAction Continue; exit 1 }
-Show-GuardCheck 'Pinned file hashes' { Assert-GuardFilePins $p }
-Show-GuardCheck 'Dedicated loopback listener' { Assert-GuardProxyListener $p }
-Show-GuardCheck 'Expected HTTPS exit IPv4 (contacts api.ipify.org)' { Test-GuardExit $p }
-Show-GuardCheck 'User settings and inherited authentication overrides' { Assert-GuardLaunchInputs (Join-Path $ProfileDirectory 'claude-config') @() }
-Show-GuardCheck 'Encrypted credential file exists (not decrypted)' {
-    if (!(Test-Path -LiteralPath (Join-Path $ProfileDirectory 'token.dpapi') -PathType Leaf)) { throw 'Run Save-Token.ps1.' }
+$report=Invoke-GuardDiagnostics $ProfileDirectory -VerifyPolicy:$VerifyPolicy -ExtendedNetwork:$ExtendedNetwork -Offline:$Offline
+foreach ($check in $report.Checks) {
+    $color=switch ($check.Status) { 'PASS' {'Green'} 'FAIL' {'Red'} 'WARN' {'Yellow'} default {'Gray'} }
+    Write-Host ("[{0}] {1}: {2}" -f $check.Status,$check.Id,$check.Summary) -ForegroundColor $color
+    if ($check.NextStep) { Write-Host ('  ' + $check.NextStep) }
 }
-if ($VerifyPolicy) { Show-GuardCheck 'Actual WFP policy contents (UAC)' { Invoke-GuardPolicy $p 'check' } }
-else { Write-Host '[NOT CHECKED] WFP contents; rerun with -VerifyPolicy for the administrator check.' }
-if ($failed) { exit 1 }
+if ($ExportReport) {
+    $directory=Export-GuardDiagnostics $report $ProfileDirectory
+    Write-Host "Redacted JSON + HTML report: $directory"
+    if ($OpenReport) { Start-Process -FilePath (Join-Path $directory 'report.html') | Out-Null }
+}
+Write-Host 'NOT_CHECKED is not a pass. Exit code 0 only means no FAIL findings; it is not a safety certificate.'
+if (@($report.Checks | Where-Object Status -eq 'FAIL').Count) { exit 1 }
 exit 0

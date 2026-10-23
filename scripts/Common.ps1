@@ -155,7 +155,9 @@ function Assert-GuardLaunchInputs([string]$ConfigDirectory, [string[]]$Arguments
     }
     foreach ($arg in $Arguments) {
         if ($arg -match '^--(bare|settings|setting-sources|mcp-config|strict-mcp-config|plugin-dir)(=|$)') { throw 'That CLI option overrides guarded startup configuration.' }
+        if ($arg -match '^--bg(=|$)') { throw 'Shared background sessions are not supported by this foreground launcher.' }
     }
+    if ($null -ne $Arguments -and $Arguments.Count -gt 0 -and $Arguments[0] -in @('agents','daemon')) { throw 'Shared background commands require a separately audited launcher; use a foreground session.' }
     $settingsPath = Join-Path $ConfigDirectory 'settings.json'
     if (Test-Path -LiteralPath $settingsPath) {
         $settings = Get-Content -LiteralPath $settingsPath -Raw -Encoding UTF8 | ConvertFrom-Json
