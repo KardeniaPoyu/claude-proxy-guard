@@ -2,7 +2,7 @@
 
 # Claude Proxy Guard
 
-**A checked proxy entry point for Claude Code on Windows.**
+**A Windows launcher for Claude Code with a fixed proxy, fail-closed connections and verifiable diagnostics.**
 
 [![Windows build](https://github.com/KardeniaPoyu/claude-proxy-guard/actions/workflows/windows.yml/badge.svg)](https://github.com/KardeniaPoyu/claude-proxy-guard/actions/workflows/windows.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
@@ -11,24 +11,46 @@
 
 </div>
 
-Claude Proxy Guard checks a local HTTP proxy and its expected IPv4 exit before launching Claude Code with an independent configuration and a Windows DPAPI-encrypted token. Persistent Windows Filtering Platform (WFP) policies restrict specified executables to the chosen loopback TCP port.
+You already have Claude Code and a working proxy, and want a repeatable development entry point that fails when that proxy is unavailable. Claude Proxy Guard combines node selection, connection restrictions, credential storage, shortcuts and troubleshooting for Windows desktop and VS Code integrated-terminal use.
+
+Before launch it verifies the proxy process, pinned files and expected IPv4. During use, persistent Windows Filtering Platform (WFP) policies restrict registered executables to the selected loopback TCP port. An imported proxy keeps one chosen node without DIRECT or automatic switching groups. **The local entry point and imported configuration are fixed; the remote service's routing still needs verification. Exit checks are not continuous monitoring.**
 
 **Experimental.** A successful build does not establish network isolation. See the [verification matrix](docs/verification.md). This is not a filesystem sandbox or an account-ban prevention tool. It is unaffiliated with Anthropic and does not distribute Claude Code, accounts or proxy services.
 
 ![Architecture and trust boundaries](docs/assets/architecture.svg)
 
-## What it does
+## Core differences
 
-- Discovers readable NekoRay/sing-box, Clash/Mihomo and v2rayN/Xray configs; imports one chosen node into a separate, pinned proxy without altering the original client.
-- Checks the WFP policies, proxy process, config path, binary/config hashes and expected exit IPv4 before launch.
-- Blocks specified executable paths from connecting to other destination addresses/ports, UDP or IPv6.
-- Stores your token encrypted for the current Windows user and injects it into the launched process environment.
-- Uses an independent `CLAUDE_CONFIG_DIR`; disables MCP and project settings sources by default.
-- Provides desktop and VS Code integrated-terminal entry points. Does not add startup tasks.
+| Need | Implementation |
+| --- | --- |
+| Fail when the proxy stops | Environment variables configure proxy use; persistent WFP rules block registered executable paths from other addresses/ports, UDP and IPv6 |
+| Avoid the wrong proxy | Verify the actual listener process, config path, SHA-256 pins, WFP policy and expected exit before starting CC |
+| Reuse an existing node | Discover readable NekoRay, Clash/Mihomo and v2rayN core configs and import one node separately; original clients are unchanged, but not every GUI database/subscription format is supported |
+| A separate development entry point | Independent `CLAUDE_CONFIG_DIR`, DPAPI-encrypted token, desktop/VS Code terminal launchers; MCP and project settings sources disabled by default; no login autostart |
+| Reproducible diagnostics | Per-check exit/service observations, redacted reports and actual WFP stop/restore tests in Windows CI; untested areas stay explicitly unverified |
 
-**Scope matters:** unlisted child processes, delegated Windows DNS, the proxy's upstream routing and existing connections require separate consideration. The exit check runs at startup, not continuously. Same-user malicious code and administrators are outside the threat model.
+General proxy clients manage nodes and routing; IP-check websites observe the browser making the request. This project connects **pre-launch verification and per-executable connection restrictions** into one workflow. Its value is integration and verifiability, built on standard WFP and DPAPI technologies.
+
+## Use cases
+
+| Scenario | Entry point |
+| --- | --- |
+| Local Windows development | Desktop shortcut: verify the dedicated proxy, then load your authorization and start CC |
+| Projects in VS Code | Use the same launcher in the integrated terminal, with your chosen working directory |
+| Existing NekoRay / Clash / v2rayN node | Run `Setup.cmd`, choose a readable core config and import one node |
+| Troubleshooting or reporting a bug | Run `Diagnose.cmd` for a report without credentials, raw IPs or private paths |
+
+## Scope before setup
+
+- **Windows foreground CC and VS Code integrated terminals only.** GUI extensions, authorization browsers, cloud CC, WSL and shared background sessions are not automatically protected.
+- **Rules follow executable paths, not parent/child relationships.** Git, Python and MCP networking executables need individual configuration; other instances at the same path are also affected. MCP is disabled by default.
+- **DNS and remote routing need separate tests.** CC's WFP policy does not establish isolation for delegated Windows DNS, browser WebRTC or the proxy server's upstream routing.
+
+[Full security boundaries](docs/security-model.md) · [Verified and unverified behavior](docs/verification.md). Same-user malicious code and administrators are outside the threat model.
 
 ## Diagnose without an account
+
+**Version note:** this page describes the current source. The published `0.2.0-preview.1` ZIP does not include `Diagnose.cmd` or the new reports. Build the current source to use them, or wait for a subsequent release containing them; consult each release's notes for its contents.
 
 Start your dedicated proxy, then double-click **Diagnose.cmd**. It compares two HTTPS exit observations against the pinned IPv4, probes IPv6 egress, and checks Claude web/API and release metadata. It exports a private, self-contained HTML report plus JSON, without credentials, raw IPs, private paths or response bodies.
 
