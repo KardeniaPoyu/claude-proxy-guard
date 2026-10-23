@@ -29,6 +29,7 @@ jobs:
           ./tests/Test-Diagnostics.ps1
           ./tests/Test-WfpIntegration.ps1 -AcknowledgeIsolatedTestHost
           ./scripts/Package.ps1 -Version (Get-Content VERSION -Raw).Trim()
+          ./tests/Test-Package.ps1 -ZipPath (Get-ChildItem dist/*.zip).FullName
       - name: Publish immutable preview assets
         shell: powershell
         env:

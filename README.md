@@ -52,7 +52,7 @@
 
 ## 一键诊断
 
-**版本提示：** 本页描述当前源码；已发布的 `0.2.0-preview.1` ZIP 尚不含 `Diagnose.cmd` 和新报告功能。使用这些功能需从当前源码构建，或等待包含它们的后续发行包；每个发行包的功能以其发布说明为准。
+**当前预览版：** [0.3.0-preview.1](https://github.com/KardeniaPoyu/claude-proxy-guard/releases/tag/v0.3.0-preview.1) 已包含 `Diagnose.cmd` 和 HTML/JSON 报告。
 
 启动专用代理后，双击 **`Diagnose.cmd`**：核对两处 HTTPS 出口、探测 IPv6 出站、查看 Claude 网页/API 和更新源响应，并生成本地 HTML + JSON 报告。无须登录或提供 token，不停止现有代理。
 
@@ -70,10 +70,12 @@
 
 ### 1. 下载完整 ZIP
 
+[Windows x64 ZIP](https://github.com/KardeniaPoyu/claude-proxy-guard/releases/download/v0.3.0-preview.1/claude-proxy-guard-0.3.0-preview.1-windows-x64.zip) · [SHA-256](https://github.com/KardeniaPoyu/claude-proxy-guard/releases/download/v0.3.0-preview.1/claude-proxy-guard-0.3.0-preview.1-windows-x64.zip.sha256)
+
 从 [Releases](https://github.com/KardeniaPoyu/claude-proxy-guard/releases) 下载 `windows-x64.zip` 和对应 `.sha256`。不要把 GitHub 的 **Source code (zip)** 当安装包。
 
 ```powershell
-Get-FileHash .\claude-proxy-guard-0.2.0-preview.1-windows-x64.zip -Algorithm SHA256
+Get-FileHash .\claude-proxy-guard-0.3.0-preview.1-windows-x64.zip -Algorithm SHA256
 ```
 
 核对摘要后，在 ZIP 属性里点“解除锁定”（如显示），再解压到固定目录。预编译包未做代码签名；摘要只核对文件完整性。完整包已含 WFP helper 和 YAML 解析器，**普通使用者不需要安装 Visual Studio。**

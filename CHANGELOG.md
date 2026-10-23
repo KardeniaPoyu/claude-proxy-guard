@@ -4,6 +4,10 @@
 
 ## Unreleased
 
+## 0.3.0-preview.1 — 2026-10-22
+
+- 中英文 README 明确核心差异、使用场景和保护边界；发布 ZIP 解压后验证摘要、原生 helper、YAML 解析器与离线报告。
+
 - 新增 `Diagnose.cmd`：多源出口、IPv6 出站、Claude 网页/API 与更新元数据检查，以及脱敏 HTML/JSON 报告。
 - 明确区分 PASS、FAIL、WARN、NOT_CHECKED；代理文件/监听身份校验失败后跳过公网探测；支持完全离线检查。
 - 探测固定使用专用 HTTP 代理，无账号凭证、跳转跟随或直连回退；拒绝本机检测目标以避开 .NET Framework 的隐式 loopback 绕过行为。
